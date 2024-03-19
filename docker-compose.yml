@@ -10,7 +10,6 @@ services:
       DB_USERNAME: "postgres"
       DB_PASSWORD: "postgres"
       APP_PORT: "8000"
-      PROMETHEUS_ADDRESS: ""
       JWT_SECRET: "VEhJU0lTQVRFU1Q="
       BCRYPT_SALT: 10
       S3_ENABLED: false
