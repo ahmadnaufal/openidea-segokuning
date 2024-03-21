@@ -1,13 +1,20 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 
 	"github.com/ahmadnaufal/openidea-segokuning/internal/config"
+	"github.com/ahmadnaufal/openidea-segokuning/internal/image"
+	"github.com/ahmadnaufal/openidea-segokuning/internal/post"
+	"github.com/ahmadnaufal/openidea-segokuning/internal/user"
+	"github.com/ahmadnaufal/openidea-segokuning/pkg/jwt"
 	"github.com/ahmadnaufal/openidea-segokuning/pkg/middleware"
+	"github.com/ahmadnaufal/openidea-segokuning/pkg/s3"
 
 	"github.com/ansrivas/fiberprometheus/v2"
+	awsConfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -19,28 +26,47 @@ import (
 func main() {
 	cfg := config.InitializeConfig()
 
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		ErrorHandler: config.DefaultErrorHandler(),
+	})
+
 	app.Use(logger.New())
 	app.Use(recover.New())
 	app.Use(compress.New())
 	// custom middleware to set all method not allowed response to not found
 	app.Use(middleware.CustomMiddleware404())
 
-	// jwtProvider := jwt.NewJWTProvider(cfg.JWTSecret)
+	jwtProvider := jwt.NewJWTProvider(cfg.JWTSecret)
 
-	// db := connectToDB(cfg.Database, cfg.Env)
+	db := connectToDB(cfg.Database, cfg.Env)
+
+	userRepo := user.NewUserRepo(db)
 
 	// trxProvider := config.NewTransactionProvider(db)
 
-	// awsCfg, err := awsConfig.LoadDefaultConfig(context.TODO())
-	// if err != nil {
-	// 	panic(err)
-	// }
+	awsCfg, err := awsConfig.LoadDefaultConfig(context.TODO())
+	if err != nil {
+		panic(err)
+	}
 
-	// s3Provider := s3.NewS3Provider(awsCfg, cfg.S3.Bucket, cfg.S3.Region, cfg.S3.ID, cfg.S3.SecretKey)
+	s3Provider := s3.NewS3Provider(awsCfg, cfg.S3.Bucket, cfg.S3.Region, cfg.S3.ID, cfg.S3.SecretKey)
+
+	imageHandler := image.NewImageHandler(&s3Provider)
+	userHandler := user.NewUserHandler(user.UserHandlerConfig{
+		UserRepo:    &userRepo,
+		JwtProvider: &jwtProvider,
+		SaltCost:    cfg.BcryptSalt,
+	})
+	friendHandler := user.NewUserHandler(user.UserHandlerConfig{})
+	postHandler := post.NewPostHandler(post.PostHandlerConfig{})
+
+	imageHandler.RegisterRoute(app, jwtProvider)
+	userHandler.RegisterRoute(app, jwtProvider)
+	friendHandler.RegisterRoute(app, jwtProvider)
+	postHandler.RegisterRoute(app, jwtProvider)
 
 	// setup instrumentation
-	prometheus := fiberprometheus.New("shopifyx")
+	prometheus := fiberprometheus.New("segokuning")
 	prometheus.RegisterAt(app, "/metrics")
 	app.Use(prometheus.Middleware)
 

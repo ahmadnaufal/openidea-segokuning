@@ -2,6 +2,8 @@ package user
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -17,9 +19,9 @@ func NewUserRepo(db *sqlx.DB) UserRepo {
 func (r UserRepo) CreateUser(ctx context.Context, user User) error {
 	query := `
 		INSERT INTO users
-			(id, username, name, password)
+			(id, email, phone, name, password)
 		VALUES
-			(:id, :username, :name, :password)
+			(:id, :email, :phone, :name, :password)
 	`
 
 	updatedQuery, args, err := sqlx.Named(query, user)
@@ -36,23 +38,31 @@ func (r UserRepo) CreateUser(ctx context.Context, user User) error {
 	return nil
 }
 
-func (r UserRepo) GetUserByUsername(ctx context.Context, username string) (User, error) {
+func (r UserRepo) GetUserByCredential(ctx context.Context, credentialType, credentialValue string) (User, error) {
 	var result User
 
-	query := `
+	rawQuery := `
 		SELECT
 			id,
-			username,
+			email,
+			phone,
 			name,
 			password
 		FROM
 			users
 		WHERE
-			username = $1
+			%s = $1
 		LIMIT 1
 	`
 
-	err := r.db.GetContext(ctx, &result, query, username)
+	var query string
+	if credentialType == "email" {
+		query = fmt.Sprintf(rawQuery, "email")
+	} else {
+		query = fmt.Sprintf(rawQuery, "phone")
+	}
+
+	err := r.db.GetContext(ctx, &result, query, credentialValue)
 	if err != nil {
 		return result, err
 	}
@@ -66,9 +76,11 @@ func (r UserRepo) GetUserByID(ctx context.Context, id string) (User, error) {
 	query := `
 		SELECT
 			id,
-			username,
+			email,
+			phone,
 			name,
-			password
+			password,
+			image_url
 		FROM
 			users
 		WHERE
@@ -82,4 +94,34 @@ func (r UserRepo) GetUserByID(ctx context.Context, id string) (User, error) {
 	}
 
 	return result, nil
+}
+
+func (r UserRepo) UpdateUser(ctx context.Context, tx *sql.Tx, user User) error {
+	query := `
+		UPDATE
+			users
+		SET
+			email = :email,
+			phone = :phone,
+			image_url = :image_url,
+			name = :name
+		WHERE
+			id = :id
+	`
+
+	updatedQuery, args, err := sqlx.Named(query, user)
+	if err != nil {
+		return err
+	}
+
+	if tx != nil {
+		_, err = tx.ExecContext(ctx, sqlx.Rebind(sqlx.DOLLAR, updatedQuery), args...)
+	} else {
+		_, err = r.db.ExecContext(ctx, sqlx.Rebind(sqlx.DOLLAR, updatedQuery), args...)
+	}
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

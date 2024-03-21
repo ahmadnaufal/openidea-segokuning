@@ -32,7 +32,6 @@ func (h *imageHandler) UploadImage(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusForbidden).JSON(model.ErrorResponse{
 			Message: err.Error(),
-			Code:    "forbidden",
 		})
 	}
 
@@ -40,7 +39,6 @@ func (h *imageHandler) UploadImage(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(model.ErrorResponse{
 			Message: "uploaded file was invalid",
-			Code:    "invalid_file",
 		})
 	}
 
@@ -49,7 +47,6 @@ func (h *imageHandler) UploadImage(c *fiber.Ctx) error {
 	if fileSize < 10*1024 || fileSize > 2*1024*1024 {
 		return c.Status(fiber.StatusBadRequest).JSON(model.ErrorResponse{
 			Message: "invalid file size",
-			Code:    "invalid_file_size",
 		})
 	}
 
@@ -58,7 +55,6 @@ func (h *imageHandler) UploadImage(c *fiber.Ctx) error {
 	if len(fp) < 2 || (fp[len(fp)-1] != "jpg" && fp[len(fp)-1] != "jpeg") {
 		return c.Status(fiber.StatusBadRequest).JSON(model.ErrorResponse{
 			Message: "invalid file extension",
-			Code:    "invalid_file_extension",
 		})
 	}
 
@@ -66,7 +62,6 @@ func (h *imageHandler) UploadImage(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(model.ErrorResponse{
 			Message: "something wrong with the server. Please contact admin",
-			Code:    "internal_server_error",
 		})
 	}
 

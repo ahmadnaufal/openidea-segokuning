@@ -2,9 +2,9 @@ services:
   app:
     build: .
     ports:
-      - "8080:1323"
+      - "8080:8000"
     environment:
-      DB_NAME: "openidea-shopifyx"
+      DB_NAME: "openidea-segokuning"
       DB_PORT: "5432"
       DB_HOST: "localhost"
       DB_USERNAME: "postgres"

@@ -26,3 +26,6 @@ migrate:
 
 migrate-rollback:
 	migrate -path ./db/migrations -database $(DB_CONN_URL) down 1
+
+migrate-version:
+	migrate -path ./db/migrations -database $(DB_CONN_URL) version 

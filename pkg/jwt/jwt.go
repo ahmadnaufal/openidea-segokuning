@@ -73,7 +73,8 @@ func GetLoggedInUser(c *fiber.Ctx) (JWTUser, error) {
 
 	jwtUser.UserID = claims["userId"].(string)
 	jwtUser.Name = claims["name"].(string)
-	jwtUser.Username = claims["username"].(string)
+	jwtUser.Email = claims["email"].(string)
+	jwtUser.Phone = claims["phone"].(string)
 
 	return jwtUser, nil
 }
