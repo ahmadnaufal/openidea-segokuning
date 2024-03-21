@@ -11,10 +11,12 @@ import (
 var (
 	ErrMalformedRequest       = fiber.NewError(http.StatusBadRequest, "request malformed")
 	ErrCredentialExists       = fiber.NewError(http.StatusConflict, "credential already used")
-	ErrUserNotFound           = fiber.NewError(http.StatusNotFound, "user with the specified credential not found")
 	ErrWrongPassword          = fiber.NewError(http.StatusBadRequest, "wrong password entered")
 	ErrRequestForbidden       = fiber.NewError(http.StatusForbidden, "request forbidden")
 	ErrCannotChangeCredential = fiber.NewError(http.StatusBadRequest, "cannot change email or phone from link email/phone API")
+	ErrUserNotFound           = fiber.NewError(http.StatusNotFound, "user with the specified credential not found")
+	ErrPostNotFound           = fiber.NewError(http.StatusNotFound, "post not found")
+	ErrPostCreatorIsNotFriend = fiber.NewError(http.StatusBadRequest, "you cannot comment a post which author is not on your friend list")
 )
 
 func DefaultErrorHandler() fiber.ErrorHandler {

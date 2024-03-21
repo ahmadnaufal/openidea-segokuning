@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/ahmadnaufal/openidea-segokuning/internal/config"
+	"github.com/ahmadnaufal/openidea-segokuning/internal/friend"
 	"github.com/ahmadnaufal/openidea-segokuning/internal/image"
 	"github.com/ahmadnaufal/openidea-segokuning/internal/post"
 	"github.com/ahmadnaufal/openidea-segokuning/internal/user"
@@ -41,8 +42,10 @@ func main() {
 	db := connectToDB(cfg.Database, cfg.Env)
 
 	userRepo := user.NewUserRepo(db)
+	friendRepo := friend.NewFriendRepo(db)
+	postRepo := post.NewPostRepo(db)
 
-	// trxProvider := config.NewTransactionProvider(db)
+	trxProvider := config.NewTransactionProvider(db)
 
 	awsCfg, err := awsConfig.LoadDefaultConfig(context.TODO())
 	if err != nil {
@@ -57,8 +60,15 @@ func main() {
 		JwtProvider: &jwtProvider,
 		SaltCost:    cfg.BcryptSalt,
 	})
-	friendHandler := user.NewUserHandler(user.UserHandlerConfig{})
-	postHandler := post.NewPostHandler(post.PostHandlerConfig{})
+	friendHandler := friend.NewFriendHandler(friend.FriendHandlerConfig{
+		UserRepo:   &userRepo,
+		FriendRepo: &friendRepo,
+	})
+	postHandler := post.NewPostHandler(post.PostHandlerConfig{
+		PostRepo:   &postRepo,
+		TxProvider: &trxProvider,
+		FriendRepo: &friendRepo,
+	})
 
 	imageHandler.RegisterRoute(app, jwtProvider)
 	userHandler.RegisterRoute(app, jwtProvider)

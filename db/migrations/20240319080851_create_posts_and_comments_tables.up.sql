@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS posts (
   id VARCHAR(48) PRIMARY KEY,
   user_id VARCHAR(48) NOT NULL,
-  feed_in_html TEXT NOT NULL,
+  post_in_html TEXT NOT NULL,
   created_at TIMESTAMP(0) DEFAULT NOW(),
   updated_at TIMESTAMP(0) DEFAULT NOW()
 );
