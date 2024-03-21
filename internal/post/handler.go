@@ -180,7 +180,7 @@ func (h *postHandler) CreatePost(c *fiber.Ctx) error {
 		return err
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(model.DataResponse{
+	return c.Status(fiber.StatusOK).JSON(model.DataResponse{
 		Message: "post created",
 		Data: CreatePostResponse{
 			PostID: post.ID,
