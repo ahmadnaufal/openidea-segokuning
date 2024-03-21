@@ -53,7 +53,7 @@ func (h *userHandler) RegisterUser(c *fiber.Ctx) error {
 		return errors.Wrap(config.ErrMalformedRequest, err.Error())
 	}
 
-	if err := validation.Validate(payload); err != nil {
+	if err := payload.Validate(); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
@@ -126,7 +126,7 @@ func (h *userHandler) Authenticate(c *fiber.Ctx) error {
 		return errors.Wrap(config.ErrMalformedRequest, err.Error())
 	}
 
-	if err := validation.Validate(payload); err != nil {
+	if err := payload.Validate(); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
@@ -136,7 +136,7 @@ func (h *userHandler) Authenticate(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusOK).JSON(model.DataResponse{
-		Message: "User registered successfully",
+		Message: "User logged successfully",
 		Data: UserResponse{
 			Email:       user.Email.String,
 			Phone:       user.Phone.String,
@@ -255,7 +255,7 @@ func (h *userHandler) LinkCredential(c *fiber.Ctx) error {
 		return errors.Wrap(config.ErrMalformedRequest, err.Error())
 	}
 
-	if err := validation.Validate(payload); err != nil {
+	if err := payload.Validate(); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
