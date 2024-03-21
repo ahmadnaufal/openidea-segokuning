@@ -17,6 +17,10 @@ var (
 	ErrUserNotFound           = fiber.NewError(http.StatusNotFound, "user with the specified credential not found")
 	ErrPostNotFound           = fiber.NewError(http.StatusNotFound, "post not found")
 	ErrPostCreatorIsNotFriend = fiber.NewError(http.StatusBadRequest, "you cannot comment a post which author is not on your friend list")
+	ErrTargetUserIDEmpty      = fiber.NewError(http.StatusBadRequest, "user ID is empty")
+	ErrSelfAddFriend          = fiber.NewError(http.StatusBadRequest, "cannot add yourself as a new friend")
+	ErrFriendAlreadyAdded     = fiber.NewError(http.StatusBadRequest, "user already added as friend")
+	ErrUserIsNotAFriend       = fiber.NewError(http.StatusBadRequest, "user is not a friend")
 )
 
 func DefaultErrorHandler() fiber.ErrorHandler {

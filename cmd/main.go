@@ -63,6 +63,7 @@ func main() {
 	friendHandler := friend.NewFriendHandler(friend.FriendHandlerConfig{
 		UserRepo:   &userRepo,
 		FriendRepo: &friendRepo,
+		TxProvider: &trxProvider,
 	})
 	postHandler := post.NewPostHandler(post.PostHandlerConfig{
 		PostRepo:   &postRepo,

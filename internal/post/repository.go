@@ -75,7 +75,7 @@ func (r *PostRepo) GetPosts(ctx context.Context, req ListPostsRequest) ([]PostDe
 	var posts []PostDetail
 
 	baseQuery := `
-		SELECT
+		SELECT DISTINCT
 			p.id AS post_id,
 			p.post_in_html AS post_in_html,
 			p.created_at AS post_created_at,

@@ -127,7 +127,7 @@ func (h *postHandler) getPosts(ctx context.Context, payload ListPostsRequest) ([
 				Creator: UserCreatorResponse{
 					UserID:      v.UserID,
 					Name:        v.Name,
-					ImageURL:    v.ImageURL,
+					ImageURL:    v.ImageURL.String,
 					FriendCount: v.FriendCount,
 					CreatedAt:   v.UserCreatedAt,
 				},
@@ -145,7 +145,7 @@ func (h *postHandler) getPosts(ctx context.Context, payload ListPostsRequest) ([
 			Creator: UserCreatorResponse{
 				UserID:      post.UserID,
 				Name:        post.Name,
-				ImageURL:    post.ImageURL,
+				ImageURL:    post.ImageURL.String,
 				FriendCount: post.FriendCount,
 				CreatedAt:   post.UserCreatedAt,
 			},

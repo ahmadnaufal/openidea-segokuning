@@ -16,7 +16,7 @@ func NewUserRepo(db *sqlx.DB) UserRepo {
 	return UserRepo{db: db}
 }
 
-func (r UserRepo) CreateUser(ctx context.Context, user User) error {
+func (r *UserRepo) CreateUser(ctx context.Context, user User) error {
 	query := `
 		INSERT INTO users
 			(id, email, phone, name, password)
@@ -38,7 +38,7 @@ func (r UserRepo) CreateUser(ctx context.Context, user User) error {
 	return nil
 }
 
-func (r UserRepo) GetUserByCredential(ctx context.Context, credentialType, credentialValue string) (User, error) {
+func (r *UserRepo) GetUserByCredential(ctx context.Context, credentialType, credentialValue string) (User, error) {
 	var result User
 
 	rawQuery := `
@@ -70,7 +70,7 @@ func (r UserRepo) GetUserByCredential(ctx context.Context, credentialType, crede
 	return result, nil
 }
 
-func (r UserRepo) GetUserByID(ctx context.Context, id string) (User, error) {
+func (r *UserRepo) GetUserByID(ctx context.Context, id string) (User, error) {
 	var result User
 
 	query := `
@@ -96,7 +96,7 @@ func (r UserRepo) GetUserByID(ctx context.Context, id string) (User, error) {
 	return result, nil
 }
 
-func (r UserRepo) UpdateUser(ctx context.Context, tx *sql.Tx, user User) error {
+func (r *UserRepo) UpdateUser(ctx context.Context, tx *sql.Tx, user User) error {
 	query := `
 		UPDATE
 			users
@@ -118,6 +118,52 @@ func (r UserRepo) UpdateUser(ctx context.Context, tx *sql.Tx, user User) error {
 		_, err = tx.ExecContext(ctx, sqlx.Rebind(sqlx.DOLLAR, updatedQuery), args...)
 	} else {
 		_, err = r.db.ExecContext(ctx, sqlx.Rebind(sqlx.DOLLAR, updatedQuery), args...)
+	}
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *UserRepo) IncrementFriendCounter(ctx context.Context, tx *sql.Tx, userID, friendID string) error {
+	query := `
+		UPDATE	
+			users
+		SET
+			friend_count = friend_count + 1
+		WHERE
+			id IN ($1, $2)
+	`
+
+	var err error
+	if tx != nil {
+		_, err = tx.ExecContext(ctx, query, userID, friendID)
+	} else {
+		_, err = r.db.ExecContext(ctx, query, userID, friendID)
+	}
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *UserRepo) DecrementFriendCounter(ctx context.Context, tx *sql.Tx, userID, friendID string) error {
+	query := `
+		UPDATE	
+			users
+		SET
+			friend_count = friend_count - 1
+		WHERE
+			id IN ($1, $2)
+	`
+
+	var err error
+	if tx != nil {
+		_, err = tx.ExecContext(ctx, query, userID, friendID)
+	} else {
+		_, err = r.db.ExecContext(ctx, query, userID, friendID)
 	}
 	if err != nil {
 		return err

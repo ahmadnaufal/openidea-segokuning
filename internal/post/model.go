@@ -1,6 +1,9 @@
 package post
 
-import "time"
+import (
+	"database/sql"
+	"time"
+)
 
 type CreatePostRequest struct {
 	PostInHTML string   `json:"postInHtml" validate:"required,min=2,max=500"`
@@ -48,11 +51,11 @@ type PostTag struct {
 }
 
 type UserInPost struct {
-	UserID        string    `db:"user_id"`
-	Name          string    `db:"name"`
-	ImageURL      string    `db:"image_url"`
-	FriendCount   int       `db:"friend_count"`
-	UserCreatedAt time.Time `db:"user_created_at"`
+	UserID        string         `db:"user_id"`
+	Name          string         `db:"name"`
+	ImageURL      sql.NullString `db:"image_url"`
+	FriendCount   int            `db:"friend_count"`
+	UserCreatedAt time.Time      `db:"user_created_at"`
 }
 
 type PostDetail struct {
