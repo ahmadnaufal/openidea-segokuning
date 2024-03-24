@@ -44,7 +44,7 @@ func main() {
 
 	jwtProvider := jwt.NewJWTProvider(cfg.JWTSecret)
 
-	db := connectToDB(cfg.Database, cfg.Env)
+	db := connectToDB(cfg.Database)
 
 	userRepo := user.NewUserRepo(db)
 	friendRepo := friend.NewFriendRepo(db)
@@ -91,10 +91,8 @@ func main() {
 	log.Fatal(app.Listen(addr))
 }
 
-func connectToDB(dbCfg config.DatabaseConfig, env string) *sqlx.DB {
-	var dsn string
-
-	dsn = fmt.Sprintf(
+func connectToDB(dbCfg config.DatabaseConfig) *sqlx.DB {
+	dsn := fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s?%s",
 		dbCfg.Username, dbCfg.Password, dbCfg.Host,
 		dbCfg.Port, dbCfg.Name, dbCfg.Params,
