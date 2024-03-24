@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/ahmadnaufal/openidea-segokuning/internal/config"
 	"github.com/ahmadnaufal/openidea-segokuning/internal/friend"
@@ -29,11 +30,8 @@ func main() {
 
 	app := fiber.New(fiber.Config{
 		ErrorHandler: config.DefaultErrorHandler(),
-	})
-
-	fiber.SetParserDecoder(fiber.ParserConfig{
-		IgnoreUnknownKeys: true,
-		ZeroEmpty:         false,
+		Prefork:      true,
+		Concurrency:  384 * 1024,
 	})
 
 	app.Use(logger.New())
@@ -105,6 +103,8 @@ func connectToDB(dbCfg config.DatabaseConfig) *sqlx.DB {
 
 	db.SetMaxOpenConns(dbCfg.MaxOpenConnection)
 	db.SetMaxIdleConns(dbCfg.MaxIdleConnection)
+	db.SetConnMaxLifetime(time.Duration(dbCfg.MaxConnLifetime) * time.Minute)
+	db.SetConnMaxIdleTime(time.Duration(dbCfg.MaxConnIdleTime) * time.Minute)
 
 	err = db.Ping()
 	if err != nil {

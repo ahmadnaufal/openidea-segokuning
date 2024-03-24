@@ -85,6 +85,9 @@ func getFilter(req FindFriendsRequest) (string, []interface{}) {
 	args := []interface{}{}
 	filters := []string{}
 
+	filters = append(filters, "u.id != ?")
+	args = append(args, req.UserID)
+
 	if req.OnlyFriend {
 		filters = append(filters, "u.id = ANY(SELECT user_id_2 FROM user_friends WHERE user_id_1 = ?)")
 		args = append(args, req.UserID)
