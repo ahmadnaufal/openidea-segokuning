@@ -31,7 +31,7 @@ func main() {
 	app := fiber.New(fiber.Config{
 		ErrorHandler: config.DefaultErrorHandler(),
 		Prefork:      true,
-		Concurrency:  384 * 1024,
+		Concurrency:  1024 * 1024,
 	})
 
 	app.Use(logger.New())
