@@ -93,19 +93,12 @@ func main() {
 
 func connectToDB(dbCfg config.DatabaseConfig, env string) *sqlx.DB {
 	var dsn string
-	if env == "production" {
-		dsn = fmt.Sprintf(
-			"postgres://%s:%s@%s:%s/%s?sslmode=verify-full&sslrootcert=ap-southeast-1-bundle.pem",
-			dbCfg.Username, dbCfg.Password, dbCfg.Host,
-			dbCfg.Port, dbCfg.Name,
-		)
-	} else {
-		dsn = fmt.Sprintf(
-			"postgres://%s:%s@%s:%s/%s?sslmode=disable",
-			dbCfg.Username, dbCfg.Password, dbCfg.Host,
-			dbCfg.Port, dbCfg.Name,
-		)
-	}
+
+	dsn = fmt.Sprintf(
+		"postgres://%s:%s@%s:%s/%s?%s",
+		dbCfg.Username, dbCfg.Password, dbCfg.Host,
+		dbCfg.Port, dbCfg.Name, dbCfg.Params,
+	)
 
 	db, err := sqlx.Open("postgres", dsn)
 	if err != nil {
