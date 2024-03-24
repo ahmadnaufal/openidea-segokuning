@@ -21,6 +21,9 @@ var (
 	ErrSelfAddFriend          = fiber.NewError(http.StatusBadRequest, "cannot add yourself as a new friend")
 	ErrFriendAlreadyAdded     = fiber.NewError(http.StatusBadRequest, "user already added as friend")
 	ErrUserIsNotAFriend       = fiber.NewError(http.StatusBadRequest, "user is not a friend")
+	ErrInvalidUploadedFile    = fiber.NewError(http.StatusBadRequest, "invalid uploaded file")
+	ErrInvalidFileSize        = fiber.NewError(http.StatusBadRequest, "invalid file size")
+	ErrInvalidFileExtension   = fiber.NewError(http.StatusBadRequest, "invalid file extension")
 )
 
 func DefaultErrorHandler() fiber.ErrorHandler {

@@ -58,6 +58,10 @@ func (h *postHandler) ListPosts(c *fiber.Ctx) error {
 	if err := c.QueryParser(&payload); err != nil {
 		return errors.Wrap(config.ErrMalformedRequest, err.Error())
 	}
+	payload.Queries = c.Queries()
+	if err := payload.Validate(); err != nil {
+		return errors.Wrap(config.ErrMalformedRequest, err.Error())
+	}
 
 	postResponses, meta, err := h.getPosts(c.Context(), payload)
 	if err != nil {
@@ -154,7 +158,7 @@ func (h *postHandler) getPosts(ctx context.Context, payload ListPostsRequest) ([
 
 	responseMeta.Limit = payload.Limit
 	responseMeta.Offset = payload.Offset
-	responseMeta.Total = count
+	responseMeta.Total = uint(count)
 
 	return postResponses, responseMeta, nil
 }

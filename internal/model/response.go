@@ -1,9 +1,9 @@
 package model
 
 type ResponseMeta struct {
-	Limit  int `json:"limit"`
-	Offset int `json:"offset"`
-	Total  int `json:"total"`
+	Limit  uint `json:"limit"`
+	Offset uint `json:"offset"`
+	Total  uint `json:"total"`
 }
 
 type DataResponse struct {

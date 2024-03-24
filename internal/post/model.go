@@ -2,23 +2,41 @@ package post
 
 import (
 	"database/sql"
+	"errors"
 	"time"
 )
 
 type CreatePostRequest struct {
 	PostInHTML string   `json:"postInHtml" validate:"required,min=2,max=500"`
-	Tags       []string `json:"tags" validate:"required"`
+	Tags       []string `json:"tags" validate:"required,dive,min=1"`
 
 	UserID string
 }
 
 type ListPostsRequest struct {
-	Limit     int      `query:"limit"`
-	Offset    int      `query:"offset"`
+	Limit     uint     `query:"limit"`
+	Offset    uint     `query:"offset"`
 	Search    string   `query:"search"`
 	SearchTag []string `query:"searchTag"`
 
 	UserID string
+	// RawQueries
+	Queries map[string]string
+}
+
+// Validate is a function for additional validation related to query
+func (r *ListPostsRequest) Validate() error {
+	queries := r.Queries
+
+	if val, ok := queries["limit"]; ok && val == "" {
+		return errors.New("limit is empty")
+	}
+
+	if val, ok := queries["offset"]; ok && val == "" {
+		return errors.New("offset is empty")
+	}
+
+	return nil
 }
 
 type AddCommentRequest struct {

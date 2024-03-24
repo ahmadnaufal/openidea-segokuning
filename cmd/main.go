@@ -31,6 +31,11 @@ func main() {
 		ErrorHandler: config.DefaultErrorHandler(),
 	})
 
+	fiber.SetParserDecoder(fiber.ParserConfig{
+		IgnoreUnknownKeys: true,
+		ZeroEmpty:         false,
+	})
+
 	app.Use(logger.New())
 	app.Use(recover.New())
 	app.Use(compress.New())

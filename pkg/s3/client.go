@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
 )
 
 type S3Provider struct {
@@ -36,7 +37,7 @@ func NewS3Provider(cfg aws.Config, bucket, region, id, secret string) S3Provider
 func (s *S3Provider) UploadImage(ctx context.Context, fileHeader *multipart.FileHeader) (string, error) {
 	file, err := fileHeader.Open()
 	if err != nil {
-		return "", err
+		return "", errors.Wrap(err, "fileHeader.Open() error")
 	}
 	defer file.Close()
 
@@ -48,7 +49,7 @@ func (s *S3Provider) UploadImage(ctx context.Context, fileHeader *multipart.File
 		Body:   file,
 	})
 	if err != nil {
-		return "", err
+		return "", errors.Wrap(err, "s3Client.PutObject error")
 	}
 
 	finalUrl := fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", s.bucket, s.region, filename)

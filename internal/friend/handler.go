@@ -53,6 +53,10 @@ func (h *friendHandler) FindFriends(c *fiber.Ctx) error {
 	if err := c.QueryParser(&payload); err != nil {
 		return errors.Wrap(config.ErrMalformedRequest, err.Error())
 	}
+	payload.Queries = c.Queries()
+	if err := payload.Validate(); err != nil {
+		return errors.Wrap(config.ErrMalformedRequest, err.Error())
+	}
 
 	userResponses, meta, err := h.getFriends(c.Context(), payload)
 	if err != nil {
@@ -89,7 +93,7 @@ func (h *friendHandler) getFriends(ctx context.Context, payload FindFriendsReque
 
 	meta.Limit = payload.Limit
 	meta.Offset = payload.Offset
-	meta.Total = count
+	meta.Total = uint(count)
 
 	return userResponses, meta, nil
 }
@@ -127,8 +131,18 @@ func (h *friendHandler) addFriend(ctx context.Context, payload AddFriendRequest)
 		return config.ErrSelfAddFriend
 	}
 
+	// check if the user exists
+	targetFriend, err := h.userRepo.GetUserByID(ctx, payload.TargetUserID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return config.ErrUserNotFound
+		}
+
+		return errors.Wrap(err, "GetUserByID error")
+	}
+
 	// check if user already befriended
-	isFriend, err := h.friendRepo.IsUserFriendWith(ctx, payload.UserID, payload.TargetUserID)
+	isFriend, err := h.friendRepo.IsUserFriendWith(ctx, payload.UserID, targetFriend.ID)
 	if err != nil && err != sql.ErrNoRows {
 		return errors.Wrap(err, "IsUserFriendWith error")
 	}
@@ -144,13 +158,13 @@ func (h *friendHandler) addFriend(ctx context.Context, payload AddFriendRequest)
 	}
 	defer tx.Rollback()
 
-	err = h.friendRepo.AddAsFriend(ctx, tx, payload.UserID, payload.TargetUserID)
+	err = h.friendRepo.AddAsFriend(ctx, tx, payload.UserID, targetFriend.ID)
 	if err != nil {
 		return errors.Wrap(err, "AddAsFriend error")
 	}
 
 	// increment both friendCount counter
-	err = h.userRepo.IncrementFriendCounter(ctx, tx, payload.UserID, payload.TargetUserID)
+	err = h.userRepo.IncrementFriendCounter(ctx, tx, payload.UserID, targetFriend.ID)
 	if err != nil {
 		return errors.Wrap(err, "IncrementFriendCounter error")
 	}

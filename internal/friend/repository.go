@@ -48,13 +48,11 @@ func (r *FriendRepo) ListFriends(ctx context.Context, req FindFriendsRequest) ([
 			u.created_at AS user_created_at
 		FROM
 			users u
-		WHERE
-			id != ?
 		%s
 	`
 
 	// exclude the querying user
-	args := []interface{}{req.UserID}
+	args := []interface{}{}
 
 	filterQuery, filterArgs := getFilter(req)
 
@@ -85,18 +83,23 @@ func (r *FriendRepo) ListFriends(ctx context.Context, req FindFriendsRequest) ([
 
 func getFilter(req FindFriendsRequest) (string, []interface{}) {
 	args := []interface{}{}
-	filter := ""
+	filters := []string{}
 
 	if req.OnlyFriend {
-		filter += " AND u.id = ANY(SELECT user_id_2 FROM user_friends WHERE user_id_1 = ?)"
+		filters = append(filters, "u.id = ANY(SELECT user_id_2 FROM user_friends WHERE user_id_1 = ?)")
 		args = append(args, req.UserID)
 	}
 
 	if req.Search != "" {
-		filter += " AND (u.name ILIKE '%' || ? || '%' OR u.email ILIKE '%' || ? || '%' OR u.phone ILIKE '%' || ? || '%') "
-		args = append(args, req.Search, req.Search, req.Search)
+		filters = append(filters, "u.name ILIKE '%' || ? || '%'")
+		args = append(args, req.Search)
 	}
 
+	if len(filters) == 0 {
+		return "", args
+	}
+
+	filter := fmt.Sprintf(" WHERE %s", strings.Join(filters, " AND "))
 	return filter, args
 }
 
@@ -129,14 +132,12 @@ func getLimitAndOffset(req FindFriendsRequest) (string, []interface{}) {
 	query := "LIMIT ? OFFSET ?"
 
 	limit := req.Limit
-	if limit <= 0 {
+	if limit == 0 {
 		limit = 10
 	}
 
+	// offset will be always 0 by default
 	offset := req.Offset
-	if offset < 0 {
-		offset = 0
-	}
 
 	args := []interface{}{limit, offset}
 

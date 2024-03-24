@@ -48,10 +48,10 @@ func (r *RegisterUserRequest) Validate() error {
 				})
 			}
 
-			if len(r.CredentialValue) > 30 {
+			if len(r.CredentialValue) > 50 {
 				validationErrs = append(validationErrs, config.ValidationError{
 					Field:   "credentialValue",
-					Message: "length is more than 30",
+					Message: "length is more than 50",
 				})
 			}
 		} else if r.CredentialType == "phone" {

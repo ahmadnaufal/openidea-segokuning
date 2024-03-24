@@ -172,10 +172,8 @@ func getLimitAndOffset(req ListPostsRequest) (string, []interface{}) {
 		limit = 10
 	}
 
+	// offset by default will be 0
 	offset := req.Offset
-	if offset < 0 {
-		offset = 0
-	}
 
 	args := []interface{}{limit, offset}
 

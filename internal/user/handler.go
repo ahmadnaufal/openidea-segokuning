@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"database/sql"
+	"strings"
 	"time"
 
 	"github.com/ahmadnaufal/openidea-segokuning/internal/config"
@@ -43,7 +44,8 @@ func (h *userHandler) RegisterRoute(r *fiber.App, jwtProvider jwt.JWTProvider) {
 
 	userGroup.Post("/register", h.RegisterUser)
 	userGroup.Post("/login", h.Authenticate)
-	userGroup.Post("/link/:type", authMiddleware, h.LinkCredential)
+	userGroup.Post("/link", authMiddleware, h.LinkEmail)
+	userGroup.Post("/link/phone", authMiddleware, h.LinkPhone)
 	userGroup.Patch("/", authMiddleware, h.UpdateUser)
 }
 
@@ -202,6 +204,12 @@ func (h *userHandler) UpdateUser(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
+	comps := strings.Split(payload.ImageURL, "/")
+	filename := comps[len(comps)-1]
+	if len(strings.Split(filename, ".")) < 2 {
+		return fiber.ErrBadRequest
+	}
+
 	ctx := c.Context()
 	loggedInUser, err := h.updateUser(ctx, payload)
 	if err != nil {
@@ -238,12 +246,9 @@ func (h *userHandler) updateUser(ctx context.Context, payload UpdateUserRequest)
 	return loggedInUser, nil
 }
 
-func (h *userHandler) LinkCredential(c *fiber.Ctx) error {
+func (h *userHandler) LinkEmail(c *fiber.Ctx) error {
 	var payload LinkCredentialRequest
-	payload.CredentialType = c.Params("type")
-	if payload.CredentialType != "email" && payload.CredentialType != "phone" {
-		return fiber.ErrNotFound
-	}
+	payload.CredentialType = "email"
 
 	claims, err := jwt.GetLoggedInUser(c)
 	if err != nil {
@@ -255,8 +260,34 @@ func (h *userHandler) LinkCredential(c *fiber.Ctx) error {
 		return errors.Wrap(config.ErrMalformedRequest, err.Error())
 	}
 
-	if err := payload.Validate(); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	ctx := c.Context()
+	loggedInUser, err := h.updateCredential(ctx, payload)
+	if err != nil {
+		return err
+	}
+
+	return c.Status(fiber.StatusOK).JSON(model.DataResponse{
+		Message: "credential updated successfully",
+		Data: UserResponse{
+			Phone: loggedInUser.Phone.String,
+			Email: loggedInUser.Email.String,
+			Name:  loggedInUser.Name,
+		},
+	})
+}
+
+func (h *userHandler) LinkPhone(c *fiber.Ctx) error {
+	var payload LinkCredentialRequest
+	payload.CredentialType = "phone"
+
+	claims, err := jwt.GetLoggedInUser(c)
+	if err != nil {
+		return config.ErrRequestForbidden
+	}
+	payload.UserID = claims.UserID
+
+	if err := c.BodyParser(&payload); err != nil {
+		return errors.Wrap(config.ErrMalformedRequest, err.Error())
 	}
 
 	ctx := c.Context()
@@ -276,6 +307,10 @@ func (h *userHandler) LinkCredential(c *fiber.Ctx) error {
 }
 
 func (h *userHandler) updateCredential(ctx context.Context, payload LinkCredentialRequest) (User, error) {
+	if err := payload.Validate(); err != nil {
+		return User{}, fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
 	loggedInUser, err := h.userRepo.GetUserByID(ctx, payload.UserID)
 	if err != nil {
 		return User{}, errors.Wrap(err, "getuserByID error")
