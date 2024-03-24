@@ -22,7 +22,7 @@ type S3Config struct {
 
 type Config struct {
 	Database          DatabaseConfig
-	AppPort           string `env:"APP_PORT"`
+	AppPort           string `env:"APP_PORT,default=8080"`
 	PrometheusAddress string `env:"PROMETHEUS_ADDRESS"`
 	Env               string `env:"ENV"`
 
