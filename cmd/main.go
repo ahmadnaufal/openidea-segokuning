@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/ahmadnaufal/openidea-segokuning/internal/config"
@@ -30,7 +33,7 @@ func main() {
 
 	app := fiber.New(fiber.Config{
 		ErrorHandler: config.DefaultErrorHandler(),
-		Prefork:      true,
+		Prefork:      false,
 		Concurrency:  1024 * 1024,
 	})
 
@@ -86,7 +89,26 @@ func main() {
 
 	addr := fmt.Sprintf(":%s", cfg.AppPort)
 
-	log.Fatal(app.Listen(addr))
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		// start the server
+		if err := app.Listen(addr); err != nil {
+			log.Println("failed to start server: ", err)
+			os.Exit(1)
+		}
+	}()
+
+	receivedSignal := <-sig
+
+	log.Printf("received %v. Stopping app...", receivedSignal)
+	if err := app.Shutdown(); err != nil {
+		log.Println("failed to shutdown server: ", err)
+		os.Exit(1)
+	}
+
+	log.Println("App successfully stopped.")
 }
 
 func connectToDB(dbCfg config.DatabaseConfig) *sqlx.DB {
